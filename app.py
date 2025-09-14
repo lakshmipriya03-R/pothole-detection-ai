@@ -1,5 +1,4 @@
 import streamlit as st
-import cv2
 import numpy as np
 from PIL import Image
 import torch
@@ -15,9 +14,12 @@ st.write("Upload an image to detect potholes using our AI model")
 uploaded_file = st.file_uploader("Choose an image...", type=['jpg', 'jpeg', 'png'])
 
 if uploaded_file is not None:
-    # Read the image
+    # Read the image using PIL (no OpenCV needed)
     image = Image.open(uploaded_file)
     st.image(image, caption='Uploaded Image', use_column_width=True)
+    
+    # Convert to numpy array if needed for model
+    img_array = np.array(image)
     
     # Add your model loading and prediction code here
     # You'll need to load your best.pt model and run inference
