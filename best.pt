@@ -4,6 +4,7 @@ import torch
 from ultralytics import YOLO
 import tempfile
 import os
+from datetime import datetime  # ← FIXED IMPORT
 
 # Set page config
 st.set_page_config(page_title="Pothole Detection", page_icon="🕳️")
@@ -59,7 +60,7 @@ if uploaded_file:
                 report_text = f"""
 POTHOLEDETECTION AI - ANALYSIS REPORT
 =====================================
-Generated: {st.session_state.get('timestamp', 'N/A')}
+Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 EXECUTIVE SUMMARY:
 - Total Potholes: {num_potholes}
@@ -87,6 +88,3 @@ DETAILED FINDINGS:
     # Clean up
     os.unlink(temp_path)
 
-# Store timestamp
-if 'timestamp' not in st.session_state:
-    st.session_state.timestamp = st.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
