@@ -7,7 +7,7 @@ from datetime import datetime
 from PIL import Image
 
 # Load YOLO model
-model = YOLO("runs/detect/train5/weights/best.pt")
+model = YOLO("best.pt")
 
 # Function to analyze pothole danger
 def analyze_pothole_danger(area, confidence):
@@ -112,3 +112,4 @@ if uploaded_file is not None:
           {p['impact']}
           ```
         """)
+
