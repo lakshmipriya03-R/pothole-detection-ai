@@ -1,7 +1,5 @@
 import streamlit as st
 from PIL import Image
-import numpy as np
-from fpdf import FPDF
 from datetime import datetime
 import io
 
@@ -19,30 +17,42 @@ def analyze_image(image):
         "total_potholes": 7,
         "risk_level": "EXTREME", 
         "total_area": 11942,
-        "confidence": 64.1,
-        "potholes": [
-            {"confidence": 92.24, "width": 102, "height": 24, "area": 2448, "severity": 30},
-            {"confidence": 89.98, "width": 74, "height": 29, "area": 2146, "severity": 30},
-        ]
+        "confidence": 64.1
     }
 
-# PDF generation function
-def generate_pdf_report(analysis_results):
+# Simple PDF generation function
+def create_pdf_report(results):
+    """Create a simple text-based PDF"""
+    from fpdf import FPDF
+    
     pdf = FPDF()
     pdf.add_page()
+    
+    # Title
     pdf.set_font("Arial", 'B', 24)
     pdf.cell(0, 20, "Pothole Analysis Report", 0, 1, 'C')
+    
+    # Date
     pdf.set_font("Arial", '', 12)
     pdf.cell(0, 10, f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 1, 'C')
-    pdf.ln(20)
+    pdf.ln(10)
     
-    # Executive Summary
+    # Results
     pdf.set_font("Arial", 'B', 16)
     pdf.cell(0, 10, "Executive Summary", 0, 1)
     pdf.set_font("Arial", '', 12)
-    pdf.multi_cell(0, 10, f"Total Potholes Detected: {analysis_results['total_potholes']}\nRisk Level: {analysis_results['risk_level']}\nTotal Area: {analysis_results['total_area']} pixels²\nConfidence: {analysis_results['confidence']}%")
     
-    return pdf
+    summary_text = f"""
+    Total Potholes Detected: {results['total_potholes']}
+    Risk Level: {results['risk_level']}
+    Total Damage Area: {results['total_area']} pixels²
+    AI Confidence: {results['confidence']}%
+    """
+    
+    pdf.multi_cell(0, 10, summary_text)
+    
+    # Save to bytes
+    return pdf.output(dest='S').encode('latin-1')
 
 # Main app
 uploaded_file = st.file_uploader("Choose an image...", type=['jpg', 'jpeg', 'png'])
@@ -57,20 +67,24 @@ if uploaded_file is not None:
         results = analyze_image(image)
         
         # Generate PDF report
-        pdf = generate_pdf_report(results)
-        
-        # Get PDF as bytes
-        pdf_bytes = pdf.output(dest='S').encode('latin1')
-        
-        st.success("✅ Analysis completed!")
-        st.write(f"**Total Potholes Detected:** {results['total_potholes']}")
-        st.write(f"**Risk Level:** {results['risk_level']}")
-        st.write(f"**Confidence:** {results['confidence']}%")
-        
-        # Download button for PDF
-        st.download_button(
-            label="📄 Download Full Analysis Report PDF",
-            data=pdf_bytes,
-            file_name="pothole_analysis_report.pdf",
-            mime="application/pdf"
-        )
+        try:
+            pdf_bytes = create_pdf_report(results)
+            
+            st.success("✅ Analysis completed!")
+            st.write(f"**Total Potholes Detected:** {results['total_potholes']}")
+            st.write(f"**Risk Level:** {results['risk_level']}")
+            st.write(f"**Confidence:** {results['confidence']}%")
+            
+            # Download button for PDF
+            st.download_button(
+                label="📄 Download Full Analysis Report PDF",
+                data=pdf_bytes,
+                file_name="pothole_analysis_report.pdf",
+                mime="application/pdf"
+            )
+            
+        except Exception as e:
+            st.error(f"Error generating PDF: {str(e)}")
+            # Fallback: show results without PDF
+            st.write("**Analysis Results:**")
+            st.json(results)
